@@ -1,8 +1,7 @@
 import mongoose from 'mongoose';
-import { MongoMemoryReplSet } from 'mongodb-memory-server';
 import { ENV } from './env';
 
-let replSet: MongoMemoryReplSet | null = null;
+let replSet: any = null;
 
 export const connectDB = async (): Promise<string> => {
   const uri = ENV.MONGODB_URI;
@@ -18,14 +17,22 @@ export const connectDB = async (): Promise<string> => {
       return uri;
     } catch (err: any) {
       console.warn(`[Database] Warning: Could not connect to configured MongoDB URI (${err.message}).`);
+      if (ENV.NODE_ENV === 'production') {
+        throw err;
+      }
     }
   } else {
     console.log(`[Database] Notice: MONGODB_URI contains password placeholder or is not configured.`);
+    if (ENV.NODE_ENV === 'production') {
+      throw new Error('MONGODB_URI must be configured with valid credentials in production.');
+    }
   }
 
   // Fallback to MongoMemoryReplSet for local development & automated testing with full transaction support
   console.log(`[Database] Starting embedded MongoDB Replica Set (with transaction support)...`);
   try {
+    // Dynamic require so compile-time in production does not require mongodb-memory-server
+    const { MongoMemoryReplSet } = require('mongodb-memory-server');
     replSet = await MongoMemoryReplSet.create({
       replSet: { count: 1, storageEngine: 'wiredTiger' },
     });
@@ -45,3 +52,4 @@ export const disconnectDB = async (): Promise<void> => {
     await replSet.stop();
   }
 };
+
