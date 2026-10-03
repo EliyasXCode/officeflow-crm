@@ -13,7 +13,8 @@ export interface ApiResponse<T = any> {
 
 const buildUrl = (endpoint: string, params?: Record<string, any>): string => {
   const apiPrefix = endpoint.startsWith('/api') ? endpoint : `/api${endpoint}`;
-  const baseUrl = (import.meta.env.VITE_API_URL || '').replace(/\/$/, '');
+  const rawBase = ((import.meta as any).env?.VITE_API_URL || '') as string;
+  const baseUrl = rawBase.replace(/\/$/, '');
   const url = `${baseUrl}${apiPrefix}`;
   if (!params) return url;
 
