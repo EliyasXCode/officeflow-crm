@@ -12,7 +12,9 @@ export interface ApiResponse<T = any> {
 }
 
 const buildUrl = (endpoint: string, params?: Record<string, any>): string => {
-  const url = endpoint.startsWith('/api') ? endpoint : `/api${endpoint}`;
+  const apiPrefix = endpoint.startsWith('/api') ? endpoint : `/api${endpoint}`;
+  const baseUrl = (import.meta.env.VITE_API_URL || '').replace(/\/$/, '');
+  const url = `${baseUrl}${apiPrefix}`;
   if (!params) return url;
 
   const searchParams = new URLSearchParams();
